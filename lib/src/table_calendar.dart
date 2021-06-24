@@ -44,6 +44,9 @@ class TableCalendar<T> extends StatefulWidget {
   /// DateTime that determines which days are currently visible and focused.
   final DateTime focusedDay;
 
+  /// DateTime to overwrite the current timestamp (useful for testing)
+  final DateTime? currentDateTime;
+
   /// The first active day of `TableCalendar`.
   /// Blocks swiping to days before it.
   ///
@@ -236,6 +239,7 @@ class TableCalendar<T> extends StatefulWidget {
     this.calendarStyle = const CalendarStyle(),
     this.calendarBuilders = const CalendarBuilders(),
     this.rangeSelectionMode = RangeSelectionMode.toggledOff,
+    this.currentDateTime,
     this.eventLoader,
     this.enabledDayPredicate,
     this.selectedDayPredicate,
@@ -259,6 +263,7 @@ class TableCalendar<T> extends StatefulWidget {
         focusedDay = normalizeDate(focusedDay),
         firstDay = normalizeDate(firstDay),
         lastDay = normalizeDate(lastDay),
+        currentDateTime = normalizeDate(currentDateTime ?? DateTime.now()),
         super(key: key);
 
   @override
@@ -520,12 +525,12 @@ class _TableCalendarState<T> extends State<TableCalendar<T>> {
 
               return dowCell;
             },
-            dayBuilder: (context, day, focusedMonth) {
+            dayBuilder: (context, day, focusedMonth, currentDateTime) {
               return GestureDetector(
                 behavior: widget.dayHitTestBehavior,
                 onTap: () => _onDayTapped(day),
                 onLongPress: () => _onDayLongPressed(day),
-                child: _buildCell(day, focusedMonth),
+                child: _buildCell(day, focusedMonth, currentDateTime),
               );
             },
           ),
@@ -534,7 +539,7 @@ class _TableCalendarState<T> extends State<TableCalendar<T>> {
     );
   }
 
-  Widget _buildCell(DateTime day, DateTime focusedDay) {
+  Widget _buildCell(DateTime day, DateTime focusedDay, DateTime currentDateTime) {
     final isOutside = day.month != focusedDay.month;
 
     if (isOutside && _shouldBlockOutsideDays) {
@@ -580,7 +585,7 @@ class _TableCalendarState<T> extends State<TableCalendar<T>> {
           children.add(rangeHighlight);
         }
 
-        final isToday = isSameDay(day, DateTime.now());
+        final isToday = isSameDay(day, currentDateTime);
         final isDisabled = _isDayDisabled(day);
         final isWeekend = _isWeekend(day, weekendDays: widget.weekendDays);
 
